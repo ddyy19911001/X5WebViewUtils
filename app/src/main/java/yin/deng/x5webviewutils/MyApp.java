@@ -2,10 +2,6 @@ package yin.deng.x5webviewutils;
 
 import android.app.Application;
 import android.util.Log;
-
-import com.tencent.smtt.export.external.TbsCoreSettings;
-import com.tencent.smtt.sdk.QbSdk;
-
 import java.util.HashMap;
 
 import yin.deng.x5webviewutil.web.X5WebView;

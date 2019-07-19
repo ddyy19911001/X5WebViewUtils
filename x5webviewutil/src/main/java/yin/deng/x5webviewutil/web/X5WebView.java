@@ -3,19 +3,14 @@ package yin.deng.x5webviewutil.web;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.sdk.CookieSyncManager;
 import com.tencent.smtt.sdk.QbSdk;
 import com.tencent.smtt.sdk.WebSettings;
-import com.tencent.smtt.sdk.WebSettings.LayoutAlgorithm;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 import com.tencent.smtt.utils.TbsLog;
@@ -40,7 +35,6 @@ public class X5WebView extends WebView {
 	/**
 	 * 注意在onResume和onPause的时候也要执行x5webview的onResume和onPause方法
 	 * 在摧毁的时候调用x5webview.destroy的方法，保证不会内存溢出
-	 * @param x5WebView
 	 */
 
 	public void onDestroy(){
@@ -131,8 +125,8 @@ public class X5WebView extends WebView {
 		this.setWebViewClient(client);
 		// this.setWebChromeClient(chromeClient);
 		// WebStorage webStorage = WebStorage.getInstance();
-		initX5WebGoodSetting();
 		this.context=arg0;
+		initX5WebGoodSetting();
 		this.getView().setClickable(true);
 	}
 
