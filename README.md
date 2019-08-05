@@ -22,3 +22,10 @@ Step 3. init x5
       
       at Activity or Fragment
        use X5.onresume、X5.onpause、X5.ondestroy
+ 
+Step 4.Add .so and ndk
+   add .so jniLibs
+   
+      ndk {
+            abiFilters "armeabi", "armeabi-v7a", "x86", "mips"
+        }
