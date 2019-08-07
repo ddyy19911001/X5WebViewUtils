@@ -13,7 +13,7 @@ Add it in your root build.gradle at the end of repositories:
 Step 2. Add the dependency
 
       dependencies {
-        implementation 'com.github.ddyy19911001:X5WebViewUtils:1.0.2'
+        implementation 'com.github.ddyy19911001:X5WebViewUtils:1.0.3'
       }
 Step 3. init x5
   in Application,init the X5
