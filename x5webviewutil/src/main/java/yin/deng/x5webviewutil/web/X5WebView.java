@@ -317,11 +317,6 @@ public class X5WebView extends WebView {
 	{
 		try {
 			Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME); // 注释1
-			if (context.getPackageManager().resolveActivity(intent, 0) == null)
-			{  // 如果手机还没安装app，则跳转到应用市场
-				intent = new Intent(Intent.ACTION_VIEW, Uri.parse
-						("market://details?id=" + intent.getPackage())); // 注释2
-			}
 			context.startActivity(intent);
 		}
 		catch (Exception e)
