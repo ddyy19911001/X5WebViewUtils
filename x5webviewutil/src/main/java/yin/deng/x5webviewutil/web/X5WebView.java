@@ -6,15 +6,12 @@ import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.tencent.smtt.export.external.TbsCoreSettings;
@@ -32,9 +29,6 @@ import com.tencent.smtt.utils.TbsLog;
 
 import java.util.HashMap;
 
-import yin.deng.x5webviewutil.R;
-
-
 
 public class X5WebView extends WebView {
 	public ProgressView progressView;//进度条
@@ -42,7 +36,23 @@ public class X5WebView extends WebView {
 	OnWebPageChangeListener onWebPageChangeListener;
 	public String[]adLinks;
 	public String homeLinkUrl;
+	OnShouldOverridUrlListener overridAndInterCeptListener;
+	OnShouldInterCeptUrlListener interCeptUrlListener;
+	public void setOnShouldOverridUrlListener(OnShouldOverridUrlListener overridAndInterCeptListener) {
+		this.overridAndInterCeptListener = overridAndInterCeptListener;
+	}
 
+	public interface OnShouldOverridUrlListener{
+		void onIntentOpenOtherApp(WebView webView, String url);
+	}
+
+	public void setOnShouldInterCeptUrlListener(OnShouldInterCeptUrlListener interCeptUrlListener) {
+		this.interCeptUrlListener = interCeptUrlListener;
+	}
+
+	public interface OnShouldInterCeptUrlListener{
+		WebResourceResponse onShouldInterCeptUrl(WebView webView,String url);
+	}
 
 	@SuppressLint("SetJavaScriptEnabled")
 	public X5WebView(final Context context, AttributeSet attr) {
@@ -126,7 +136,18 @@ public class X5WebView extends WebView {
 		 * 防止加载网页时调起系统浏览器
 		 */
 		public boolean shouldOverrideUrlLoading(WebView view, final String url) {
-			shouldOverrideUrlLoadingInX5(view,url);
+			if(overridAndInterCeptListener!=null){
+				if ( urlCanLoad(url.toLowerCase()))
+				{  // 加载正常网页
+					view.loadUrl(url);
+				}
+				else
+				{  // 打开第三方应用或者下载apk等
+					overridAndInterCeptListener.onIntentOpenOtherApp(view,url);
+				}
+			}else {
+				shouldOverrideUrlLoadingInX5(view, url);
+			}
 			return true;
 		}
 
@@ -153,7 +174,7 @@ public class X5WebView extends WebView {
 
 		@Override
 		public WebResourceResponse shouldInterceptRequest(WebView view, String url){
-			return shouldInterceptRequestInX5(view,url,super.shouldInterceptRequest(view,url));
+			return shouldInterceptRequestInX5(view, url, super.shouldInterceptRequest(view, url));
 		}
 	};
 
@@ -252,12 +273,20 @@ public class X5WebView extends WebView {
 		url= url.toLowerCase();
 		if(!TextUtils.isEmpty(homeLinkUrl) &&!url.contains(homeLinkUrl)){
 			if(!ADFilterTool.hasAd(url,adLinks)){
-				return webResourceResponse;
+				if(interCeptUrlListener!=null){
+					return interCeptUrlListener.onShouldInterCeptUrl(view,url);
+				}else {
+					return webResourceResponse;
+				}
 			}else{
 				return new WebResourceResponse(null,null,null);
 			}
 		}else{
-			return webResourceResponse;
+			if(interCeptUrlListener!=null){
+				return interCeptUrlListener.onShouldInterCeptUrl(view,url);
+			}else {
+				return webResourceResponse;
+			}
 		}
 	}
 
