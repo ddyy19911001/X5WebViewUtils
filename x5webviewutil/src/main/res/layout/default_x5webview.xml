@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
+    android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent">
+ <yin.deng.x5webviewutil.web.ProgressView
+     android:layout_width="match_parent"
+     android:layout_height="4dp"
+     android:id="@+id/progressView"
+     android:visibility="gone"
+     />
 <yin.deng.x5webviewutil.web.X5WebView
+    android:layout_weight="1"
     android:id="@+id/x5web_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"></yin.deng.x5webviewutil.web.X5WebView>
-</RelativeLayout>
+</LinearLayout>

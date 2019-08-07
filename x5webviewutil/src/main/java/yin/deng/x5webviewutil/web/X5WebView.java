@@ -1,15 +1,30 @@
 package yin.deng.x5webviewutil.web;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.tencent.smtt.export.external.TbsCoreSettings;
+import com.tencent.smtt.export.external.interfaces.SslError;
+import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
+import com.tencent.smtt.export.external.interfaces.WebResourceResponse;
 import com.tencent.smtt.sdk.CookieSyncManager;
+import com.tencent.smtt.sdk.DownloadListener;
 import com.tencent.smtt.sdk.QbSdk;
+import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
@@ -17,19 +32,287 @@ import com.tencent.smtt.utils.TbsLog;
 
 import java.util.HashMap;
 
+import yin.deng.x5webviewutil.R;
+
 
 
 public class X5WebView extends WebView {
+	public ProgressView progressView;//进度条
 	Context context;
+	OnWebPageChangeListener onWebPageChangeListener;
+	public String[]adLinks;
+	public String homeLinkUrl;
+
+
+	@SuppressLint("SetJavaScriptEnabled")
+	public X5WebView(final Context context, AttributeSet attr) {
+		super(context, attr);
+		this.context=context;
+		initDefaultSetting();
+	}
+
+
+	public void initDefaultSetting(){
+		initProgressView();
+		initX5WebGoodSetting();
+		setWebViewClient(client);
+		setWebChromeClient(chromeClient);
+		setDownloadListener(myDownLoadListener);
+		getView().setClickable(true);
+	}
+
+	public void initDefaultSetting(ProgressView progressView){
+		this.progressView=progressView;
+		initProgressView();
+		initX5WebGoodSetting();
+		setWebViewClient(client);
+		setWebChromeClient(chromeClient);
+		setDownloadListener(myDownLoadListener);
+		getView().setClickable(true);
+	}
+
+
+	public void initDefaultSetting(ProgressView progressView,OnWebPageChangeListener onWebPageChangeListener){
+		this.progressView=progressView;
+		this.onWebPageChangeListener=onWebPageChangeListener;
+		initProgressView();
+		initX5WebGoodSetting();
+		setWebViewClient(client);
+		setWebChromeClient(chromeClient);
+		setDownloadListener(myDownLoadListener);
+		getView().setClickable(true);
+	}
+
+
+	public void initDefaultSetting(OnWebPageChangeListener onWebPageChangeListener){
+		this.onWebPageChangeListener=onWebPageChangeListener;
+		initProgressView();
+		initX5WebGoodSetting();
+		setWebViewClient(client);
+		setWebChromeClient(chromeClient);
+		setDownloadListener(myDownLoadListener);
+		getView().setClickable(true);
+	}
+
+	public void initDefaultSetting(String[] adLinks,String homeLinkUrl,OnWebPageChangeListener onWebPageChangeListener){
+		this.adLinks=adLinks;
+		this.homeLinkUrl=homeLinkUrl;
+		this.onWebPageChangeListener=onWebPageChangeListener;
+		initProgressView();
+		initX5WebGoodSetting();
+		setWebViewClient(client);
+		setWebChromeClient(chromeClient);
+		setDownloadListener(myDownLoadListener);
+		getView().setClickable(true);
+	}
+
+	public void initDefaultSetting(String[] adLinks,String homeLinkUrl,OnWebPageChangeListener onWebPageChangeListener,ProgressView progressView){
+		this.progressView=progressView;
+		this.adLinks=adLinks;
+		this.homeLinkUrl=homeLinkUrl;
+		this.onWebPageChangeListener=onWebPageChangeListener;
+		initProgressView();
+		initX5WebGoodSetting();
+		setWebViewClient(client);
+		setWebChromeClient(chromeClient);
+		setDownloadListener(myDownLoadListener);
+		getView().setClickable(true);
+	}
+
+
+
 	private WebViewClient client = new WebViewClient() {
 		/**
 		 * 防止加载网页时调起系统浏览器
 		 */
-		public boolean shouldOverrideUrlLoading(WebView view, String url) {
-			view.loadUrl(url);
+		public boolean shouldOverrideUrlLoading(WebView view, final String url) {
+			shouldOverrideUrlLoadingInX5(view,url);
 			return true;
 		}
+
+		@Override
+		public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
+			if(onWebPageChangeListener!=null){
+				onWebPageChangeListener.onPageStart(webView,s);
+			}
+			super.onPageStarted(webView, s, bitmap);
+		}
+
+		@Override
+		public void onPageFinished(WebView webView, String s) {
+			super.onPageFinished(webView, s);
+			if(onWebPageChangeListener!=null){
+				onWebPageChangeListener.onPageFinished(webView,s);
+			}
+		}
+
+		@Override
+		public void onReceivedSslError(WebView webView, SslErrorHandler handler, SslError sslError) {
+			handler.proceed();
+		}
+
+		@Override
+		public WebResourceResponse shouldInterceptRequest(WebView view, String url){
+			return shouldInterceptRequestInX5(view,url,super.shouldInterceptRequest(view,url));
+		}
 	};
+
+
+	public WebChromeClient chromeClient=new WebChromeClient(){
+		@Override
+		public void onReceivedTitle(WebView webView, String s) {
+			super.onReceivedTitle(webView, s);
+			if(onWebPageChangeListener!=null){
+				onWebPageChangeListener.onReceivedTitle(webView,s);
+			}
+		}
+
+		@Override
+		public void onProgressChanged(WebView webView, int i) {
+			super.onProgressChanged(webView, i);
+			if(progressView!=null&&i<100&&i>10){
+				progressView.setVisibility(VISIBLE);
+				progressView.setProgress(i);
+			}else{
+				 if(progressView!=null){
+					progressView.setVisibility(GONE);
+					progressView.setProgress(10);
+				}
+			}
+		}
+	};
+
+
+	public DownloadListener myDownLoadListener=new DownloadListener() {
+		@Override
+		public void onDownloadStart(final String url, final String userAgent, final String contentDisposition, final String mimetype, final long contentLength) {
+			AlertDialog.Builder builder=new AlertDialog.Builder(context);
+			builder.setTitle("系统提示");
+			builder.setMessage("是否打开浏览器下载该文件？");
+			builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					Log.e("X5WebView", "--- onDownloadStart ---" + " url = " + url + ", userAgent = " + userAgent + ", " +
+							"contentDisposition = " + contentDisposition + ", mimetype = " + mimetype + ", contentLength = " + contentLength);
+					downloadByBrowser(url);
+				}
+			});
+			builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+			builder.create().show();
+		}
+	};
+
+	/**
+	 * 处理各种intent
+	 * @param view
+	 * @param url
+	 */
+	public void shouldOverrideUrlLoadingInX5(WebView view, final String url) {
+		if ( urlCanLoad(url.toLowerCase()))
+		{  // 加载正常网页
+			view.loadUrl(url);
+		}
+		else
+		{  // 打开第三方应用或者下载apk等
+			AlertDialog.Builder builder=new AlertDialog.Builder(context);
+			builder.setTitle("系统提示");
+			builder.setMessage("此网页请求打开第三方应用，是否允许？");
+			builder.setPositiveButton("允许打开", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					startThirdpartyApp(url);
+				}
+			});
+			builder.setNegativeButton("拒绝打开", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+			builder.create().show();
+		}
+	}
+
+
+	/**
+	 * 处理拦截广告
+	 * @param view
+	 * @param url
+	 * @param webResourceResponse
+	 * @return
+	 */
+	public WebResourceResponse shouldInterceptRequestInX5(WebView view, String url, WebResourceResponse webResourceResponse) {
+		url= url.toLowerCase();
+		if(!TextUtils.isEmpty(homeLinkUrl) &&!url.contains(homeLinkUrl)){
+			if(!ADFilterTool.hasAd(url,adLinks)){
+				return webResourceResponse;
+			}else{
+				return new WebResourceResponse(null,null,null);
+			}
+		}else{
+			return webResourceResponse;
+		}
+	}
+
+
+	public interface OnWebPageChangeListener{
+		void onReceivedTitle(WebView webView, String s);
+		void onPageStart(WebView webView, String s);
+		void onPageFinished(WebView webView, String s);
+	}
+
+	/**
+	 * 列举正常情况下能正常加载的网页url
+	 * @param url
+	 * @return
+	 */
+	public boolean urlCanLoad(String url)
+	{
+		return url.startsWith("http://") || url.startsWith("https://") ||
+				url.startsWith("ftp://") || url.startsWith("file://");
+	}
+
+
+	/**
+	 * 打开第三方app。如果没安装则跳转到应用市场
+	 * @param url
+	 */
+	public void startThirdpartyApp(String url)
+	{
+		try {
+			Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME); // 注释1
+			if (context.getPackageManager().resolveActivity(intent, 0) == null)
+			{  // 如果手机还没安装app，则跳转到应用市场
+				intent = new Intent(Intent.ACTION_VIEW, Uri.parse
+						("market://details?id=" + intent.getPackage())); // 注释2
+			}
+			context.startActivity(intent);
+		}
+		catch (Exception e)
+		{
+			Log.e("X5WebView", e.getMessage());
+			Toast.makeText(context,"无法打开该应用！",Toast.LENGTH_SHORT).show();
+		}
+	}
+
+
+	/**
+	 * 通过浏览器下载
+	 * @param url
+	 */
+	private void downloadByBrowser(String url) {
+		Intent intent = new Intent(Intent.ACTION_VIEW);
+		intent.addCategory(Intent.CATEGORY_BROWSABLE);
+		intent.setData(Uri.parse(url));
+		context.startActivity(intent);
+	}
 
 
 	/**
@@ -55,6 +338,7 @@ public class X5WebView extends WebView {
 			webSetting.setSaveFormData(true);// 保存表单数据
 			webSetting.setAllowUniversalAccessFromFileURLs(true);
 			webSetting.setAllowFileAccess(true);
+			webSetting.setLoadWithOverviewMode(true); // 缩放至屏幕的大小
 			webSetting.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);
 			webSetting.setSupportZoom(true);
 			webSetting.setBuiltInZoomControls(true);
@@ -119,15 +403,15 @@ public class X5WebView extends WebView {
 	}
 
 
-	@SuppressLint("SetJavaScriptEnabled")
-	public X5WebView(Context arg0, AttributeSet arg1) {
-		super(arg0, arg1);
-		this.setWebViewClient(client);
-		// this.setWebChromeClient(chromeClient);
-		// WebStorage webStorage = WebStorage.getInstance();
-		this.context=arg0;
-		initX5WebGoodSetting();
-		this.getView().setClickable(true);
+
+
+
+	private void initProgressView() {
+		//初始化进度条
+		if(progressView!=null) {
+			progressView.setProgress(10);
+			Log.i("设置进度条", "成功");
+		}
 	}
 
 //	private void initWebViewSettings() {
@@ -165,6 +449,21 @@ public class X5WebView extends WebView {
 //	}
 
 
+	public static class ADFilterTool{
+		public static boolean hasAd(String url,String[]adUrls){
+			if(adUrls==null||adUrls.length==0){
+				return false;
+			}
+			for(String adUrl :adUrls){
+				if(url.contains(adUrl)){
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+
 	public X5WebView(Context arg0) {
 		super(arg0);
 		setBackgroundColor(85621);
@@ -185,6 +484,19 @@ public class X5WebView extends WebView {
 			getX5WebViewExtension().invokeMiscMethod("setVideoParams",
 					data);
 		}
+	}
+
+
+	/**
+	 * dp转换成px
+	 *
+	 * @param context Context
+	 * @param dp      dp
+	 * @return px值
+	 */
+	private int dp2px(Context context, float dp) {
+		final float scale = context.getResources().getDisplayMetrics().density;
+		return (int) (dp * scale + 0.5f);
 	}
 
 
