@@ -14,6 +14,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.Toast;
 
+
 import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.export.external.interfaces.SslError;
 import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
@@ -51,7 +52,7 @@ public class X5WebView extends WebView {
 	}
 
 	public interface OnShouldInterCeptUrlListener{
-		WebResourceResponse onShouldInterCeptUrl(WebView webView,String url);
+		WebResourceResponse onShouldInterCeptUrl(WebView webView, String url);
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")

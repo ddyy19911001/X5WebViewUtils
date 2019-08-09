@@ -2,7 +2,6 @@ package yin.deng.x5webviewutils;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 
 import yin.deng.x5webviewutil.web.ProgressView;
 import yin.deng.x5webviewutil.web.X5WebView;
