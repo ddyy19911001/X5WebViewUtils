@@ -30,3 +30,5 @@ Add it in your root build.gradle at the end of repositories:
             abiFilters "armeabi", "armeabi-v7a", "x86", "mips"
         }
 # Step 5.request permission of read_extranal And write_extranal
+
+        android:usesCleartextTraffic="true"  in Manifast.xml
